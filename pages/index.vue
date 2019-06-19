@@ -16,46 +16,13 @@
 			</view>
 		</view>
 		<view class="grid col-4 padding-sm">
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('平民')">平民</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('狼人')">狼人</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('预言家')">预言家</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('女巫')">女巫</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('猎人')">猎人</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('白吃')">白吃</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="IdentitySelect('熊')">熊</button>
+			<view class="margin-tb-sm text-center" v-for="player in playerIdentity">
+				<button class="cu-btn round " :class="name==player?'bg-red':'bg-white'" @click="IdentitySelect(player)">{{player}}</button>
 			</view>
 		</view>
 		<view class="grid col-4 padding-sm">
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('刀')">刀</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('毒')">毒</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('救')">救</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('查验')">查验</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('开枪')">开枪</button>
-			</view>
-			<view class="margin-tb-sm text-center">
-				<button class="cu-btn round bg-white" @click="Features('投票')">投票</button>
+			<view class="margin-tb-sm text-center" v-for="feature in features">
+				<button class="cu-btn round " :class="name==feature?'bg-red':'bg-white'" @click="Features(feature)">{{feature}}</button>
 			</view>
 		</view>
 		<view v-html="msg"></view>
@@ -70,7 +37,9 @@
 				players: [],
 				msg: '',
 				name: '',
-				playerFlg: true
+				playerFlg: true,
+				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白吃', '熊'],
+				features: ['刀', '毒', '救', '查验', '开枪', '投票']
 			}
 		},
 		methods: {
@@ -89,6 +58,7 @@
 			IdentitySelect: function(name) {
 				this.name = name;
 				this.playerFlg = true;
+				console.log(name);
 			},
 			selectPlayer: function(index, name) {
 				if (this.playerFlg) {
