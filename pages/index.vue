@@ -8,7 +8,7 @@
 		</view>
 		<view class="cu-list grid col-3">
 			<view class="cu-item" v-for="(player, index) in players" @click="selectPlayer(index, player['name'])">
-				<view class="cu-tag badge" v-if="player['dead']">
+				<view class="cu-tag badge" v-if="player['dead'] || player['skill']">
 					<block v-for="statue in player['status']">{{statue}}</block>
 				</view>
 				<text class="lg text-gray">{{player['name']}}</text>
@@ -25,6 +25,7 @@
 				<button class="cu-btn round " :class="name==feature?'bg-red':'bg-white'" @click="Features(feature)">{{feature}}</button>
 			</view>
 		</view>
+		
 		<view v-html="msg"></view>
 
 	</view>
@@ -38,8 +39,8 @@
 				msg: '',
 				name: '',
 				playerFlg: true,
-				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白吃', '熊'],
-				features: ['刀', '毒', '救', '查验', '开枪', '投票']
+				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白痴', '熊', '守卫'],
+				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票']
 			}
 		},
 		methods: {
@@ -51,6 +52,7 @@
 						id: i,
 						name: '平民',
 						dead: false,
+						skill: false,
 						status: ''
 					})
 				}
@@ -72,9 +74,14 @@
 								this.players[index]['status'] = '';
 								this.msg += '法官取消狼人杀死' + (index + 1) + '号玩家<br>';
 							} else if (!this.players[index]['dead']) {
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '刀';
-								this.msg += '狼人杀死了' + (index + 1) + '号玩家<br>';
+								if (this.players[index]['status'] == '守') {
+									this.msg += '狼人杀' + (index + 1) + '号玩家，但由于此玩家被守护，不可被刀<br>';
+								} else {
+									this.players[index]['dead'] = true;
+									this.players[index]['status'] = '刀';
+									this.msg += '狼人杀死了' + (index + 1) + '号玩家<br>';
+								}
+								
 							} else {
 								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为刀<br>';
 								this.players[index]['dead'] = true;
@@ -101,6 +108,10 @@
 								this.players[index]['dead'] = false;
 								this.players[index]['status'] = '';
 								this.msg += '女巫救了' + (index + 1) + '号玩家<br>';
+							} else if (this.players[index]['status'] == '守') {
+								this.players[index]['dead'] = true;
+								this.players[index]['status'] = '奶穿';
+								this.msg += '' + (index + 1) + '号玩家被同守同救，死亡<br>';
 							}
 							break;
 						case '查验':
@@ -134,6 +145,19 @@
 								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为票<br>';
 								this.players[index]['dead'] = true;
 								this.players[index]['status'] = '票';
+							}
+							break;
+							case '守护':
+							if (!this.players[index]['dead']) {
+								if (this.players[index]['status'] == '守') {
+									this.players[index]['status'] = '';
+									this.players[index]['skill'] = false;
+									this.msg += '法官取消守护' + (index + 1) + '号玩家<br>';
+								}else {
+									this.players[index]['status'] = '守';
+									this.players[index]['skill'] = true;
+									this.msg += '守卫守护' + (index + 1) + '号玩家<br>';
+								}
 							}
 							break;
 						default:
