@@ -1,9 +1,9 @@
 <template>
-	<view>
+	<view class="bg-white">
 		<view class="cu-bar bg-white search">
 			<view class="search-form round">
 				<text class="cuIcon-search">选择游戏人数</text>
-				<input type="text" placeholder="选择游戏人数" @input="ConfirmPlayer"></input>
+				<input type="text" placeholder="选择游戏人数" @input="ConfirmPlayer" ref="playerCountInput"></input>
 			</view>
 		</view>
 		<view class="cu-list grid col-3">
@@ -15,9 +15,19 @@
 				<text>{{index + 1}}号玩家</text>
 			</view>
 		</view>
+		<view class="cu-bar bg-white solid-bottom">
+			<view class="action">
+				角色选择
+			</view>
+		</view>
 		<view class="grid col-4 padding-sm">
 			<view class="margin-tb-sm text-center" v-for="player in playerIdentity">
 				<button class="cu-btn round " :class="name==player?'bg-red':'bg-white'" @click="IdentitySelect(player)">{{player}}</button>
+			</view>
+		</view>
+		<view class="cu-bar bg-white solid-bottom">
+			<view class="action">
+				技能选择
 			</view>
 		</view>
 		<view class="grid col-4 padding-sm">
@@ -25,9 +35,61 @@
 				<button class="cu-btn round " :class="name==feature?'bg-red':'bg-white'" @click="Features(feature)">{{feature}}</button>
 			</view>
 		</view>
-		
-		<view v-html="msg"></view>
+		<view class="cu-form-group">
+			<view class="title">倒计时</view>
+			<input placeholder="请输入倒计时时间" name="input" v-model="downCountTime"></input>
+			<button class='cu-btn bg-green shadow' @click="StartCountDown()">开始计时</button>
+		</view>
+		<button class="cu-btn block bg-blue margin-tb-sm lg" @click="ResetGameShow()">重置游戏</button>
+		<button class="cu-btn block bg-blue margin-tb-sm lg" @click="MsgShow()">查看记录</button>
 
+		<view class="cu-modal" :class="modalName == 'showMsg' ? 'show' : ''" @tap="HideModal">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">游戏日志</view>
+				</view>
+				<view class="padding-xl">
+					<view v-html="msg"></view>
+				</view>
+			</view>
+		</view>
+
+		<view class="cu-modal" :class="modalName=='resetGame'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">重置游戏</view>
+					<view class="action" @tap="HideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="padding-xl">
+					是否重置游戏?
+				</view>
+				<view class="cu-bar bg-white justify-end">
+					<view class="action">
+						<button class="cu-btn line-green text-green" @tap="HideModal">取消</button>
+						<button class="cu-btn bg-green margin-left" @tap="ResetGame">确定</button>
+
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="cu-modal" :class="modalName=='countDown'?'show':''">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end">
+					<view class="content">倒计时</view>
+					<view class="action" @tap="HideModal">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="padding-xl">
+					还有{{downCountTimeNow}}秒发言结束<br>
+					<view v-if="downCountTimeNow <= 0">发言结束，请下一顺位发言</view>
+					<button class="cu-btn block bg-blue margin-tb-sm lg" @click="StartCountDown()">重置发言时间</button>
+				</view>
+			</view>
+		</view>
+	</view>
 	</view>
 </template>
 
@@ -39,13 +101,17 @@
 				msg: '',
 				name: '',
 				playerFlg: true,
+				modalName: null,
+				downCountTime: 90,
+				downCountTimeNow: 0,
+				eval: null,
 				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白痴', '熊', '守卫'],
 				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票']
 			}
 		},
 		methods: {
-			ConfirmPlayer: function(e) {
-				let num = e.detail.value;
+			ConfirmPlayer: function() {
+				let num = this.$refs.playerCountInput.inputValue;
 				this.players = [];
 				for (var i = 0; i < num; i++) {
 					this.players.push({
@@ -81,7 +147,7 @@
 									this.players[index]['status'] = '刀';
 									this.msg += '狼人杀死了' + (index + 1) + '号玩家<br>';
 								}
-								
+
 							} else {
 								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为刀<br>';
 								this.players[index]['dead'] = true;
@@ -147,13 +213,13 @@
 								this.players[index]['status'] = '票';
 							}
 							break;
-							case '守护':
+						case '守护':
 							if (!this.players[index]['dead']) {
 								if (this.players[index]['status'] == '守') {
 									this.players[index]['status'] = '';
 									this.players[index]['skill'] = false;
 									this.msg += '法官取消守护' + (index + 1) + '号玩家<br>';
-								}else {
+								} else {
 									this.players[index]['status'] = '守';
 									this.players[index]['skill'] = true;
 									this.msg += '守卫守护' + (index + 1) + '号玩家<br>';
@@ -169,6 +235,40 @@
 			Features: function(name) {
 				this.playerFlg = false;
 				this.name = name;
+			},
+			ResetGame: function() {
+				this.ConfirmPlayer();
+				this.msg = "";
+				this.modalName = null;
+			},
+			HideModal: function() {
+				if (this.modalName == 'countDown' && this.eval != null) {
+					clearInterval(this.eval);
+					this.eval = null;
+				}
+				this.modalName = null;
+			},
+			MsgShow: function() {
+				this.modalName = 'showMsg';
+			},
+			ResetGameShow: function() {
+				this.modalName = 'resetGame';
+			},
+			StartCountDown: function() {
+				if (this.eval != null) {
+					clearInterval(this.eval);
+					this.eval = null;
+				}
+				this.downCountTimeNow = this.downCountTime;
+				this.modalName = 'countDown';
+				this.eval = setInterval(() => {
+					if (this.downCountTimeNow <= 0){
+						clearInterval(this.eval);
+						this.eval = null;
+					}else {
+						this.downCountTimeNow--;
+					}
+				}, 1000);
 			}
 		}
 	}
