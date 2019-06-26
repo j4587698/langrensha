@@ -8,8 +8,11 @@
 		</view>
 		<view class="cu-list grid col-3">
 			<view class="cu-item" v-for="(player, index) in players" @click="selectPlayer(index, player['name'])">
-				<view class="cu-tag badge" v-if="player['dead'] || player['skill']">
-					<block v-for="statue in player['status']">{{statue}}</block>
+				<view class="cu-tag cut-tag-left badge bg-green" v-if="player['skill']">
+					<block v-for="buff in player['buffs']">{{buff}}|</block>
+				</view>
+				<view class="cu-tag badge" v-if="player['dead']">
+					{{player['status']}}
 				</view>
 				<text class="lg text-gray">{{player['name']}}</text>
 				<text>{{index + 1}}号玩家</text>
@@ -105,8 +108,8 @@
 				downCountTime: 90,
 				downCountTimeNow: 0,
 				eval: null,
-				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白痴', '熊', '守卫'],
-				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票']
+				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白痴', '熊', '守卫', '恶魔'],
+				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票', '自曝', '恶魔查验']
 			}
 		},
 		methods: {
@@ -119,14 +122,14 @@
 						name: '平民',
 						dead: false,
 						skill: false,
-						status: ''
+						status: '',
+						buffs: []
 					})
 				}
 			},
 			IdentitySelect: function(name) {
 				this.name = name;
 				this.playerFlg = true;
-				console.log(name);
 			},
 			selectPlayer: function(index, name) {
 				if (this.playerFlg) {
@@ -135,96 +138,45 @@
 				} else {
 					switch (this.name) {
 						case '刀':
-							if (this.players[index]['dead'] && this.players[index]['status'] == '刀') {
-								this.players[index]['dead'] = false;
-								this.players[index]['status'] = '';
-								this.msg += '法官取消狼人杀死' + (index + 1) + '号玩家<br>';
-							} else if (!this.players[index]['dead']) {
-								if (this.players[index]['status'] == '守') {
-									this.msg += '狼人杀' + (index + 1) + '号玩家，但由于此玩家被守护，不可被刀<br>';
-								} else {
-									this.players[index]['dead'] = true;
-									this.players[index]['status'] = '刀';
-									this.msg += '狼人杀死了' + (index + 1) + '号玩家<br>';
-								}
-
-							} else {
-								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为刀<br>';
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '刀';
+							if (!this.players[index]['dead'] && this.IsInArray(this.players[index]['buffs'], '守')) {
+								this.msg += '狼人杀' + (index + 1) + '号玩家，但由于此玩家被守护，不可被刀<br>';
+								return;
 							}
+							this.OutGame('狼人刀', '刀', index);
 							break;
 						case '毒':
-							if (this.players[index]['dead'] && this.players[index]['status'] == '毒') {
-								this.players[index]['dead'] = false;
-								this.players[index]['status'] = '';
-								this.msg += '法官取消女巫毒死' + (index + 1) + '号玩家<br>';
-							} else if (!this.players[index]['dead']) {
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '毒';
-								this.msg += '女巫毒死了' + (index + 1) + '号玩家<br>';
-							} else {
-								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为毒<br>';
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '毒';
-							}
+							this.OutGame('用毒', '毒', index);
+							break;
+						case '开枪':
+							this.OutGame('开枪', '枪', index);
+							break;
+						case '投票':
+							this.OutGame('投票', '票', index);
+							break;
+						case '自曝':
+							this.OutGame('自曝', '曝', index);
 							break;
 						case '救':
-							if (this.players[index]['dead']) {
-								this.players[index]['dead'] = false;
-								this.players[index]['status'] = '';
-								this.msg += '女巫救了' + (index + 1) + '号玩家<br>';
-							} else if (this.players[index]['status'] == '守') {
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '奶穿';
-								this.msg += '' + (index + 1) + '号玩家被同守同救，死亡<br>';
+							if (this.players[index]['dead'] && this.players[index]['status'] == '刀' &&
+								this.SkillLaunch('解药', '救', index)) {
+								if (this.IsInArray(this.players[index]['buffs'], '守')) {
+									this.players[index]['dead'] = true;
+									this.players[index]['status'] = '奶穿';
+									this.msg += '' + (index + 1) + '号玩家被同守同救，死亡<br>';
+								} else {
+									this.players[index]['dead'] = false;
+									this.players[index]['status'] = '';
+								}
 							}
 							break;
 						case '查验':
-							this.msg += '预言家查验' + (index + 1) + '号玩家，他是个' + (this.players[index]['name'] == '狼人' ? '狼人' : '好人') + '<br>';
-							break;
-						case '开枪':
-							if (this.players[index]['dead'] && this.players[index]['status'] == '枪') {
-								this.players[index]['dead'] = false;
-								this.players[index]['status'] = '';
-								this.msg += '法官取消猎人打死' + (index + 1) + '号玩家<br>';
-							} else if (!this.players[index]['dead']) {
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '枪';
-								this.msg += '猎人打死了' + (index + 1) + '号玩家<br>';
-							} else {
-								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为枪<br>';
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '枪';
-							}
-							break;
-						case '投票':
-							if (this.players[index]['dead'] && this.players[index]['status'] == '票') {
-								this.players[index]['dead'] = false;
-								this.players[index]['status'] = '';
-								this.msg += '法官取消投票' + (index + 1) + '号玩家<br>';
-							} else if (!this.players[index]['dead']) {
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '票';
-								this.msg += '投票出局了' + (index + 1) + '号玩家<br>';
-							} else {
-								this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为票<br>';
-								this.players[index]['dead'] = true;
-								this.players[index]['status'] = '票';
-							}
+							this.SkillLaunch('查验', '验', index);
 							break;
 						case '守护':
-							if (!this.players[index]['dead']) {
-								if (this.players[index]['status'] == '守') {
-									this.players[index]['status'] = '';
-									this.players[index]['skill'] = false;
-									this.msg += '法官取消守护' + (index + 1) + '号玩家<br>';
-								} else {
-									this.players[index]['status'] = '守';
-									this.players[index]['skill'] = true;
-									this.msg += '守卫守护' + (index + 1) + '号玩家<br>';
-								}
-							}
+							this.SkillLaunch('守护', '守', index);
+							break;
+						case '恶魔查验':
+							this.SkillLaunch('恶魔查验', '魔', index);
 							break;
 						default:
 							break;
@@ -262,17 +214,72 @@
 				this.downCountTimeNow = this.downCountTime;
 				this.modalName = 'countDown';
 				this.eval = setInterval(() => {
-					if (this.downCountTimeNow <= 0){
+					if (this.downCountTimeNow <= 0) {
 						clearInterval(this.eval);
 						this.eval = null;
-					}else {
+					} else {
 						this.downCountTimeNow--;
 					}
 				}, 1000);
+			},
+			OutGame: function(skillName, showName, index) {
+				if (this.players[index]['dead'] && this.players[index]['status'] == showName) {
+					this.players[index]['dead'] = false;
+					this.players[index]['status'] = '';
+					this.msg += '法官取消' + skillName + '出局' + (index + 1) + '号玩家<br>';
+				} else if (!this.players[index]['dead']) {
+					this.players[index]['dead'] = true;
+					this.players[index]['status'] = showName;
+					this.msg += skillName + '出局了' + (index + 1) + '号玩家<br>';
+				} else {
+					this.msg += '法官将' + (index + 1) + '号玩家死亡状态由' + this.players[index]['status'] + '修改为' + showName + '<br>';
+					this.players[index]['dead'] = true;
+					this.players[index]['status'] = showName;
+				}
+			},
+			SkillLaunch: function(skillName, showName, index) {
+				if (this.IsInArray(this.players[index]['buffs'], showName)) {
+					this.RemoveFromArray(this.players[index]['buffs'], showName);
+					if (this.players[index]['buffs'].length === 0) {
+						this.players[index]['skill'] = false;
+					}
+					this.msg += '法官移除' + skillName + (index + 1) + '号玩家' + showName + '的状态<br>';
+					return false;
+				} else {
+					if (!this.IsInArray(this.players[index]['buffs'], showName)) {
+						this.players[index]['buffs'].push(showName);
+						this.players[index]['skill'] = true;
+						this.msg += (index + 1) + '号玩家被使用' + skillName + '技能<br>';
+					}
+					return true;
+				}
+				return false;
+			},
+			IsInArray: function(arr, value) {
+				for (var i = 0; i < arr.length; i++) {
+					if (value === arr[i]) {
+						return true;
+					}
+				}
+				return false;
+			},
+			RemoveFromArray: function(arr, value) {
+				for (var i = 0; i < arr.length; i++) {
+					if (value === arr[i]) {
+						arr.splice(i, 1);
+						return true;
+					}
+				}
+				return false;
 			}
 		}
 	}
 </script>
 
 <style>
+	.cut-tag-left {
+		right: auto;
+		left: 20% !important;
+		margin-left: 20upx
+	}
 </style>
