@@ -7,14 +7,15 @@
 			</view>
 		</view>
 		<view class="cu-list grid col-3">
-			<view class="cu-item" v-for="(player, index) in players" @click="selectPlayer(index, player['name'])">
+			<view class="cu-item light" :class="player['info'].identity === 'wolf' ? 'bg-red' : player['info'].identity === 'god' ? 'bg-blue' : ''"
+			 v-for="(player, index) in players" @click="selectPlayer(index, player['info'].name)">
 				<view class="cu-tag cut-tag-left badge bg-green" v-if="player['skill']">
 					<block v-for="buff in player['buffs']">{{buff}}|</block>
 				</view>
 				<view class="cu-tag badge" v-if="player['dead']">
 					{{player['status']}}
 				</view>
-				<text class="lg text-gray">{{player['name']}}</text>
+				<text class="lg text-gray">{{player['info'].name}}</text>
 				<text>{{index + 1}}号玩家</text>
 			</view>
 		</view>
@@ -25,7 +26,7 @@
 		</view>
 		<view class="grid col-4 padding-sm">
 			<view class="margin-tb-sm text-center" v-for="player in playerIdentity">
-				<button class="cu-btn round " :class="name==player?'bg-red':'bg-white'" @click="IdentitySelect(player)">{{player}}</button>
+				<button class="cu-btn round " :class="name==player.name?'bg-red':'bg-white'" @click="IdentitySelect(player)">{{player.name}}</button>
 			</view>
 		</view>
 		<view class="cu-bar bg-white solid-bottom">
@@ -102,13 +103,64 @@
 			return {
 				players: [],
 				msg: '',
+				info: {},
 				name: '',
 				playerFlg: true,
 				modalName: null,
 				downCountTime: 90,
 				downCountTimeNow: 0,
 				eval: null,
-				playerIdentity: ['平民', '狼人', '预言家', '女巫', '猎人', '白痴', '熊', '守卫', '恶魔'],
+				playerIdentity: [{
+						name: '平民',
+						show: true,
+						identity: 'person'
+					},
+					{
+						name: '狼人',
+						show: true,
+						identity: 'wolf'
+					},
+					{
+						name: '预言家',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '女巫',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '猎人',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '白痴',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '熊',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '守卫',
+						show: true,
+						identity: 'god'
+					},
+					{
+						name: '恶魔',
+						show: true,
+						identity: 'wolf'
+					},
+					{
+						name: '白狼王',
+						show: true,
+						identity: 'wolf'
+					}
+				],
 				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票', '自曝', '恶魔查验']
 			}
 		},
@@ -119,7 +171,7 @@
 				for (var i = 0; i < num; i++) {
 					this.players.push({
 						id: i,
-						name: '平民',
+						info: {name: '平民',	show: true,	identity: 'person'},
 						dead: false,
 						skill: false,
 						status: '',
@@ -127,13 +179,14 @@
 					})
 				}
 			},
-			IdentitySelect: function(name) {
-				this.name = name;
+			IdentitySelect: function(info) {
+				this.name = info.name;
+				this.info = info;
 				this.playerFlg = true;
 			},
 			selectPlayer: function(index, name) {
 				if (this.playerFlg) {
-					this.players[index]['name'] = this.name;
+					this.players[index]['info'] = this.info;
 					this.msg += '法官将' + (index + 1) + '号的身份从' + name + '修改为' + this.name + '<br>';
 				} else {
 					switch (this.name) {
