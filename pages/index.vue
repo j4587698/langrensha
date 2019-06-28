@@ -159,9 +159,14 @@
 						name: '白狼王',
 						show: true,
 						identity: 'wolf'
+					},
+					{
+						name: '锈剑骑士',
+						show: true,
+						identity: 'god'
 					}
 				],
-				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票', '自曝', '恶魔查验']
+				features: ['刀', '毒', '救', '守护', '查验', '开枪', '投票', '自曝', '恶魔查验', '锈剑']
 			}
 		},
 		methods: {
@@ -230,6 +235,9 @@
 							break;
 						case '恶魔查验':
 							this.SkillLaunch('恶魔查验', '魔', index);
+							break;
+						case '锈剑':
+							this.OutGame('锈剑骑士', '锈', index);
 							break;
 						default:
 							break;

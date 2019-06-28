@@ -1,9 +1,9 @@
 {
-    "name" : "langrensha-simple",
+    "name" : "狼人杀法官简易版",
     "appid" : "",
     "description" : "",
-    "versionName" : "ColorUi for UniApp 2.1.4",
-    "versionCode" : 214,
+    "versionName" : "狼人杀法官简易版",
+    "versionCode" : 1,
     "transformPx" : false,
     "app-plus" : {
         /* 5+App特有相关 */
@@ -47,12 +47,12 @@
     "quickapp" : {},
     /* 快应用特有相关 */
     "mp-weixin" : {
-        /* 小程序特有相关 */
-        "appid" : "",
+        "appid" : "wxcb24aa148d4da855",
         "setting" : {
             "urlCheck" : false,
             "es6" : true
-        }
+        },
+        "usingComponents" : true
     },
     "h5" : {
         "title" : "狼人杀法官简易版",
