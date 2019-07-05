@@ -9,6 +9,8 @@
 		<view class="cu-list grid col-3">
 			<view class="cu-item light" :class="player['info'].identity === 'wolf' ? 'bg-red' : player['info'].identity === 'god' ? 'bg-blue' : ''"
 			 v-for="(player, index) in players" @click="selectPlayer(index, player['info'].name)">
+			 <view class="line left" v-if="player['dead']"/>
+			 <view class="line right" v-if="player['dead']"/>
 				<view class="cu-tag cut-tag-left badge bg-green" v-if="player['skill']">
 					<block v-for="buff in player['buffs']">{{buff}}|</block>
 				</view>
@@ -337,10 +339,27 @@
 	}
 </script>
 
-<style>
+<style scoped>
 	.cut-tag-left {
 		right: auto;
 		left: 20% !important;
 		margin-left: 20upx
 	}
+	
+	.line {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            height: 5upx;
+            background: #f00;
+			z-index: 10;
+        }
+
+        .line.left {
+            transform: rotate(30deg);
+        }
+
+        .line.right {
+            transform: rotate(-30deg);
+        }
 </style>
